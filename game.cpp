@@ -1,12 +1,7 @@
 #include "game.h"
 
-///////////////////////
-// DEBUG, remove later
-#include <iostream>
-using std::cout;
-//////////////////////
 
-Game::Game(): FPS_LIMIT(60), FIELD_WIDTH(10), FIELD_HEIGHT(20)
+Game::Game(): FPS_LIMIT(20), FIELD_WIDTH(10), FIELD_HEIGHT(20)
 {
      field.assign(FIELD_HEIGHT, std::vector<Tetromino::Color>(FIELD_WIDTH, Tetromino::EMPTY));
      initFieldFrame();
@@ -35,7 +30,9 @@ void Game::run()
     Position shape[Tetromino::SHAPE_SIZE_IN_TILES];
     Tetromino::Color shapeColor;
     bool shapeIsActive = false;
-    float dropDelay = 0.27f;
+    bool rotate = false;
+
+    float dropDelay = 0.25f;
     float dropTimer = 0.f;
     sf::Clock clock;
 
@@ -64,19 +61,19 @@ void Game::run()
                 case sf::Keyboard::Right:
                     shapeOffsetX = 1;
                     break;
+                case sf::Keyboard::Down:
+                    dropDelay = 0.05f;
+                    break;
+                case sf::Keyboard::Up:
+                    rotateShape(shape, shapeColor);
                 }
             }
         }
-
 
         if (dropTimer >= dropDelay)
         {
             shapeOffsetY = 1;
             dropTimer = 0.f;
-        }
-        else
-        {
-            shapeOffsetY = 0;
         }
 
         if (!shapeIsActive)
@@ -90,13 +87,18 @@ void Game::run()
         }
         else if (shapeOffsetX || shapeOffsetY)
         {
-            if (!moveShape(shape, shapeColor, shapeOffsetX, shapeOffsetY) &&
-                 shapeOffsetX == 0)
+            if (shapeOffsetX)
+            {
+                moveShape(shape, shapeColor, shapeOffsetX, 0);
+            }
+            if (shapeOffsetY && !moveShape(shape, shapeColor, 0, shapeOffsetY))
             {
                  shapeIsActive = false;
+                 clearFullLines();
             }
-            shapeOffsetX = 0;
         }
+        shapeOffsetX = shapeOffsetY = 0;
+        dropDelay = 0.25f;
 
 
         window.clear(sf::Color::White);
@@ -132,6 +134,7 @@ bool Game::canPlaceShapeAtPosition(const Position
         if (shape[i].y >= FIELD_HEIGHT ||
             shape[i].x >= FIELD_WIDTH ||
             shape[i].x < 0 ||
+            shape[i].y < 0 ||
             field[shape[i].y][shape[i].x] != Tetromino::EMPTY)
         {
             return false;
@@ -167,6 +170,56 @@ bool Game::moveShape(Position shape[Tetromino::SHAPE_SIZE_IN_TILES],
         field[shape[i].y][shape[i].x] = shapeColor;
     }
     return false;
+}
+
+
+void Game::clearFullLines()
+{
+    int k = FIELD_HEIGHT - 1;
+    int tilesCount = 0;
+    for (int i = FIELD_HEIGHT - 1; i >= 0; --i)
+    {
+        tilesCount = 0;
+        for (int j = 0; j < FIELD_WIDTH; ++j)
+        {
+            if (field[i][j] != Tetromino::EMPTY)
+                ++tilesCount;
+            field[k][j] = field[i][j];
+        }
+        if (tilesCount < FIELD_WIDTH)
+            --k;
+    }
+}
+
+
+void Game::rotateShape(Position shape[Tetromino::SHAPE_SIZE_IN_TILES],
+                 const Tetromino::Color shapeColor)
+{
+    Position pivotPoint = shape[1];
+    Position nextShape[Tetromino::SHAPE_SIZE_IN_TILES];
+
+    for (int i = 0; i < Tetromino::SHAPE_SIZE_IN_TILES; ++i)
+    {
+        field[shape[i].y][shape[i].x] = Tetromino::EMPTY;
+        nextShape[i].x = pivotPoint.x - (shape[i].y - pivotPoint.y);
+        nextShape[i].y = pivotPoint.y + (shape[i].x - pivotPoint.x);
+    }
+
+    if (canPlaceShapeAtPosition(nextShape))
+    {
+        for (int i = 0; i < Tetromino::SHAPE_SIZE_IN_TILES; ++i)
+        {
+            field[nextShape[i].y][nextShape[i].x] = shapeColor;
+            shape[i] = nextShape[i];
+        }
+    }
+    else
+    {
+        for (int i = 0; i < Tetromino::SHAPE_SIZE_IN_TILES; ++i)
+        {
+            field[shape[i].y][shape[i].x] = shapeColor;
+        }
+    }
 }
 
 

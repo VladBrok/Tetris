@@ -30,6 +30,11 @@ private:
                    const Tetromino::Color shapeColor,
                    const int offsetX, const int offsetY);
 
+    void clearFullLines();
+
+    void rotateShape(Position shape[Tetromino::SHAPE_SIZE_IN_TILES],
+                     const Tetromino::Color shapeColor);
+
     void drawField(sf::RenderWindow& window);
 };
 

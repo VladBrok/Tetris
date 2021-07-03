@@ -11,6 +11,7 @@ public:
     static const int TILE_SIZE = 18;
     static const int NUMBER_OF_SHAPES = 7;
     static const int SHAPE_SIZE_IN_TILES = 4;
+
     enum Color
     {
 	    EMPTY = -1,
@@ -24,16 +25,20 @@ public:
         NUMBER_OF_COLORS
     };
 
+    static const Position shapes[NUMBER_OF_SHAPES][SHAPE_SIZE_IN_TILES]; // Contains tile positions of different shapes
+
 	Tetromino();
+
     void getRandomShape(Position buffer[SHAPE_SIZE_IN_TILES]) const; 
+
     Color getRandomColor() const;
+
     void drawTile(sf::RenderWindow& window, const Color tileColor,
                   const Position& drawingPosition);
 
 private:
     sf::Texture tilesTexture;
     sf::Sprite tilesSprite;
-    static const Position shapes[NUMBER_OF_SHAPES][SHAPE_SIZE_IN_TILES]; // Contains tile positions of different shapes
 };
 
 #endif // TETROMINO_H
