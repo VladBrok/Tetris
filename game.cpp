@@ -1,6 +1,7 @@
 #include "game.h"
 #include <sstream>
 
+
 Game::Game(): FPS_LIMIT(20), FIELD_WIDTH(10), FIELD_HEIGHT(20)
 {
      field.assign(FIELD_HEIGHT, std::vector<Tetromino::Color>(FIELD_WIDTH, Tetromino::EMPTY));
@@ -52,6 +53,7 @@ void Game::run()
                                                                             "Tetris");
     window.setFramerateLimit(FPS_LIMIT);
 
+    const float MAX_DROP_DELAY = 0.5f;
 
     Position shape[Tetromino::SHAPE_SIZE_IN_TILES];
     Position nextShape[Tetromino::SHAPE_SIZE_IN_TILES];
@@ -61,89 +63,106 @@ void Game::run()
 
     bool shapeIsActive = false;
     bool rotate = false;
+    bool gameOver = false;
 
-    float dropDelay = 0.25f;
+    float dropDelay = MAX_DROP_DELAY;
     float dropTimer = 0.f;
     sf::Clock clock;
 
     int shapeOffsetX = 0;
-    int shapeOffsetY = 1;
+    int shapeOffsetY = 0;
 
     int linesDestroyed = 0;
 
 
     while (window.isOpen())
     {
-        dropTimer += clock.restart().asSeconds();
-
-        sf::Event event;
-        while (window.pollEvent(event))
+        if (!gameOver)
         {
-            if (event.type == sf::Event::Closed)
+            dropTimer += clock.restart().asSeconds();
+
+            sf::Event event;
+            while (window.pollEvent(event))
             {
-                window.close();
-            }
-            if (event.type == sf::Event::KeyPressed)
-            {
-                switch (event.key.code)
+                if (event.type == sf::Event::Closed)
                 {
-                case sf::Keyboard::Left:
-                    shapeOffsetX = -1;
-                    break;
-                case sf::Keyboard::Right:
-                    shapeOffsetX = 1;
-                    break;
-                case sf::Keyboard::Down:
-                    dropDelay = 0.05f;
-                    break;
-                case sf::Keyboard::Up:
-                    rotateShape(shape, shapeColor);
+                    window.close();
+                }
+                if (event.type == sf::Event::KeyPressed)
+                {
+                    switch (event.key.code)
+                    {
+                    case sf::Keyboard::Left:
+                        shapeOffsetX = -1;
+                        break;
+                    case sf::Keyboard::Right:
+                        shapeOffsetX = 1;
+                        break;
+                    case sf::Keyboard::Down:
+                        dropDelay = 0.03f;
+                        break;
+                    case sf::Keyboard::Up:
+                        rotateShape(shape, shapeColor);
+                    }
                 }
             }
-        }
 
-        if (dropTimer >= dropDelay)
-        {
-            shapeOffsetY = 1;
-            dropTimer = 0.f;
-        }
-
-        if (!shapeIsActive)
-        {
-            for (int i = 0; i < Tetromino::SHAPE_SIZE_IN_TILES; ++i)
-                shape[i] = nextShape[i];
-            tetromino.getRandomShape(nextShape);
-            shapeColor = nextShapeColor;
-            nextShapeColor = tetromino.getRandomColor();
-
-            if (!placeShapeToField(shape, shapeColor)) // Game over condition
-                window.close();
-            shapeIsActive = true;
-        }
-        else if (shapeOffsetX || shapeOffsetY)
-        {
-            if (shapeOffsetX)
+            if (dropTimer >= dropDelay)
             {
-                moveShape(shape, shapeColor, shapeOffsetX, 0);
+                shapeOffsetY = 1;
+                dropTimer = 0.f;
             }
-            if (shapeOffsetY && !moveShape(shape, shapeColor, 0, shapeOffsetY))
+
+            if (!shapeIsActive)
             {
-                 shapeIsActive = false;
-                 linesDestroyed += clearFullLines();
+                for (int i = 0; i < Tetromino::SHAPE_SIZE_IN_TILES; ++i)
+                    shape[i] = nextShape[i];
+                tetromino.getRandomShape(nextShape);
+                shapeColor = nextShapeColor;
+                nextShapeColor = tetromino.getRandomColor();
+
+                if (!placeShapeToField(shape, shapeColor)) // Game over condition
+                {
+                    gameOver = true;
+                }
+                shapeIsActive = true;
+            }
+            else if (shapeOffsetX || shapeOffsetY)
+            {
+                if (shapeOffsetX)
+                {
+                    moveShape(shape, shapeColor, shapeOffsetX, 0);
+                }
+                if (shapeOffsetY && !moveShape(shape, shapeColor, 0, shapeOffsetY))
+                {
+                        shapeIsActive = false;
+                        linesDestroyed += clearFullLines();
+                }
+            }
+            shapeOffsetX = shapeOffsetY = 0;
+            dropDelay = MAX_DROP_DELAY;
+        }
+        else // if (gameOver == true)
+        {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+            {
+                field.assign(FIELD_HEIGHT, std::vector<Tetromino::Color>(FIELD_WIDTH, Tetromino::EMPTY));
+                gameOver = false;
+                shapeIsActive = false;
+                tetromino.getRandomShape(nextShape);
+                linesDestroyed = 0;
             }
         }
-        shapeOffsetX = shapeOffsetY = 0;
-        dropDelay = 0.25f;
-
         std::stringstream scoreMsg;
         scoreMsg << "Lines destroyed: " << linesDestroyed;
         text.setString(scoreMsg.str());
 
-        // Position for "Lines destroyed" text:
+        // Position of "Lines destroyed" text:
         text.setPosition(sideFrame.getPosition().x + Tetromino::TILE_SIZE / 3,
-                         sideFrame.getPosition().y + sideFrame.getSize().y - Tetromino::TILE_SIZE * 1.5f);
+                            sideFrame.getPosition().y + sideFrame.getSize().y - Tetromino::TILE_SIZE * 1.5f);
 
 
+        // Clear, draw, display
         window.clear(sf::Color::White);
 
         window.draw(fieldFrame);
@@ -151,11 +170,20 @@ void Game::run()
         drawNextShape(window, nextShapeColor, nextShape);
         window.draw(text);
 
-        // Position for "Next shape" text:
+        // Position of "Next shape" text:
         text.setPosition(sideFrame.getPosition().x + Tetromino::TILE_SIZE / 3,
-                         sideFrame.getPosition().y + Tetromino::TILE_SIZE / 3);
+                            sideFrame.getPosition().y + Tetromino::TILE_SIZE / 3);
         text.setString("Next shape:");
         window.draw(text);
+
+        // Offering the player to start new game
+        if (gameOver)
+        {
+            text.setString("Press Space to restart");
+            text.setPosition(window.getSize().x / 2 - text.getGlobalBounds().width / 2,
+                             window.getSize().y - text.getGlobalBounds().height - Tetromino::TILE_SIZE * 2);
+            window.draw(text);
+        }
 
         drawField(window);
 
@@ -301,6 +329,4 @@ void Game::drawNextShape(sf::RenderWindow& window, const Tetromino::Color shapeC
                            Position(shape[i].x + sideFrame.getPosition().x / Tetromino::TILE_SIZE + 3,
                                     shape[i].y + Tetromino::TILE_SIZE / Tetromino::TILE_SIZE + 2));
     }
-                                      
-
 }

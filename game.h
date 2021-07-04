@@ -46,6 +46,7 @@ private:
 
     void drawNextShape(sf::RenderWindow& window, const Tetromino::Color shapeColor,
                        const Position shape[Tetromino::SHAPE_SIZE_IN_TILES]);
+
 };
 
 #endif // GAME_H
