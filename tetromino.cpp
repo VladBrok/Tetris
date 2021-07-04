@@ -7,6 +7,7 @@
 Tetromino::Tetromino()
 {
     srand(time(0));
+
     // FIXME: Add handler for this exception
     if (!tilesTexture.loadFromFile("Textures\\tiles.png"))
         throw std::runtime_error("Could not load tiles texture.");

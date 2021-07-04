@@ -14,8 +14,8 @@ public:
 
     enum Color
     {
-	    EMPTY = -1,
-	    BLUE,
+        EMPTY = -1,
+        BLUE,
         PURPLE,
         RED,
         GREEN,
@@ -34,7 +34,7 @@ public:
     Color getRandomColor() const;
 
     void drawTile(sf::RenderWindow& window, const Color tileColor,
-                  const Position& drawingPosition);
+                  const Position& drawingPosition); // Drawing position must be in tiles, not in pixels
 
 private:
     sf::Texture tilesTexture;

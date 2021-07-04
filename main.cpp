@@ -3,9 +3,9 @@
 /**
  *  TODO:
  *  - make gameplay FPS independent;
- *  - add score counter;
  *  - add the display of the next shape;
  *  - fix rotation of the square shape.
+ *  - add normal game over
  */
 
 int main()
