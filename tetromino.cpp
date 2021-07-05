@@ -7,8 +7,6 @@
 Tetromino::Tetromino()
 {
     srand(time(0));
-
-    // FIXME: Add handler for this exception
     if (!tilesTexture.loadFromFile("Textures\\tiles.png"))
         throw std::runtime_error("Could not load tiles texture.");
     tilesSprite.setTexture(tilesTexture);
@@ -31,12 +29,11 @@ Tetromino::Color Tetromino::getRandomColor() const
 }
 
 
-void Tetromino::drawTile(sf::RenderWindow& window, const Color tileColor,
-                         const Position& drawingPosition)
+void Tetromino::drawTile(sf::RenderWindow& window, const Color tileColor, const Position& drawingPosition)
 {
     assert(tileColor != EMPTY);
-    tilesSprite.setTextureRect(sf::IntRect(tileColor * TILE_SIZE, 0,
-                               TILE_SIZE, TILE_SIZE));
+
+    tilesSprite.setTextureRect(sf::IntRect(tileColor * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE));
     tilesSprite.setPosition(drawingPosition.x * TILE_SIZE, drawingPosition.y * TILE_SIZE);
     window.draw(tilesSprite);
 }
