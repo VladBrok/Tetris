@@ -36,6 +36,8 @@ public:
     void drawTile(sf::RenderWindow& window, const Color tileColor,
                   const Position& drawingPosition); // Drawing position must be in tiles, not in pixels
 
+    bool isSquare(const Position shape[SHAPE_SIZE_IN_TILES]); // Checks if the shape has "O" form
+
 private:
     sf::Texture tilesTexture;
     sf::Sprite tilesSprite;

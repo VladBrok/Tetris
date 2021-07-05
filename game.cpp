@@ -61,18 +61,19 @@ void Game::run()
     Tetromino::Color nextShapeColor = tetromino.getRandomColor();
     tetromino.getRandomShape(nextShape);
 
-    bool shapeIsActive = false;
-    bool rotate = false;
-    bool gameOver = false;
+    bool isSquare       = false;
+    bool shapeIsActive  = false;
+    bool rotate         = false;
+    bool gameOver       = false;
 
-    float dropDelay = MAX_DROP_DELAY;
-    float dropTimer = 0.f;
+    float dropDelay     = MAX_DROP_DELAY;
+    float dropTimer     = 0.f;
     sf::Clock clock;
 
-    int shapeOffsetX = 0;
-    int shapeOffsetY = 0;
+    int shapeOffsetX    = 0;
+    int shapeOffsetY    = 0;
 
-    int linesDestroyed = 0;
+    int linesDestroyed  = 0;
 
 
     while (window.isOpen())
@@ -102,7 +103,10 @@ void Game::run()
                         dropDelay = 0.03f;
                         break;
                     case sf::Keyboard::Up:
-                        rotateShape(shape, shapeColor);
+                        if (!isSquare) // Make sure that shape with square from will not rotate
+                        {
+                            rotateShape(shape, shapeColor);
+                        }
                     }
                 }
             }
@@ -116,8 +120,11 @@ void Game::run()
             if (!shapeIsActive)
             {
                 for (int i = 0; i < Tetromino::SHAPE_SIZE_IN_TILES; ++i)
+                {
                     shape[i] = nextShape[i];
+                }
                 tetromino.getRandomShape(nextShape);
+                isSquare = tetromino.isSquare(shape);
                 shapeColor = nextShapeColor;
                 nextShapeColor = tetromino.getRandomColor();
 

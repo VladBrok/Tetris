@@ -42,6 +42,17 @@ void Tetromino::drawTile(sf::RenderWindow& window, const Color tileColor,
 }
 
 
+bool Tetromino::isSquare(const Position shape[SHAPE_SIZE_IN_TILES])
+{
+    for (int i = 0; i < SHAPE_SIZE_IN_TILES; ++i)
+    {
+        if (shape[i] != shapes[0][i])
+            return false;
+    }
+    return true;
+}
+
+
 const Position Tetromino::shapes[NUMBER_OF_SHAPES][SHAPE_SIZE_IN_TILES] = 
 {
     { Position(0, 0), Position(1, 0), Position(0, 1), Position(1, 1) }, // O
