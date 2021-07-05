@@ -84,7 +84,7 @@ void Game::run()
                 {
                     window.close();
                 }
-                if (event.type == sf::Event::KeyPressed)
+                if (event.type == sf::Event::KeyPressed && shapeIsActive)
                 {
                     switch (event.key.code)
                     {
