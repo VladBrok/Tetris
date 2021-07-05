@@ -100,7 +100,7 @@ void Game::run()
                     case sf::Keyboard::Up:
                         if (!isSquare) // Figure with the shape of a square cannot rotate
                         {
-                            rotateShape(shape, shapeColor);
+                            moveShape(ROTATE, shape, shapeColor);
                         }
                     }
                 }
@@ -134,9 +134,9 @@ void Game::run()
             {
                 if (shapeOffsetX)
                 {
-                    moveShape(shape, shapeColor, shapeOffsetX, 0);
+                    moveShape(SHIFT_HORIZONTALLY, shape, shapeColor, shapeOffsetX, 0);
                 }
-                if (shapeOffsetY && !moveShape(shape, shapeColor, 0, shapeOffsetY))
+                if (shapeOffsetY && !moveShape(SHIFT_HORIZONTALLY, shape, shapeColor, 0, shapeOffsetY))
                 {
                     shapeIsActive = false;
                     linesDestroyed += clearFullLines();
@@ -227,19 +227,32 @@ bool Game::canPlaceShapeAtPosition(const Position shape[SHAPE_SIZE_IN_TILES]) co
 }
 
 
-bool Game::moveShape(Position shape[SHAPE_SIZE_IN_TILES],
-                     const Tetromino::Color shapeColor,
-                     const int offsetX, const int offsetY)
+bool Game::moveShape(const ShapeMovementType moveType, Position shape[SHAPE_SIZE_IN_TILES], 
+                     const Tetromino::Color shapeColor, const int offsetX, const int offsetY)
 {
     Position nextShape[SHAPE_SIZE_IN_TILES];
-    for (int i = 0; i < SHAPE_SIZE_IN_TILES; ++i)
+
+    // Determining the moving type (rotation or horizontal shifting)
+    if (moveType == SHIFT_HORIZONTALLY)
     {
-        field[shape[i].y][shape[i].x] = Tetromino::EMPTY;
-        nextShape[i] = Position(shape[i].x + offsetX, shape[i].y + offsetY);
+        for (int i = 0; i < SHAPE_SIZE_IN_TILES; ++i)
+        {
+            field[shape[i].y][shape[i].x] = Tetromino::EMPTY;
+            nextShape[i] = Position(shape[i].x + offsetX, shape[i].y + offsetY);
+        }
+    }
+    else if (moveType == ROTATE)
+    {
+        Position pivotPoint = shape[1];
+        for (int i = 0; i < SHAPE_SIZE_IN_TILES; ++i)
+        {
+            field[shape[i].y][shape[i].x] = Tetromino::EMPTY;
+            nextShape[i].x = pivotPoint.x - (shape[i].y - pivotPoint.y);
+            nextShape[i].y = pivotPoint.y + (shape[i].x - pivotPoint.x);
+        }
     }
 
-    //////////////////////////
-    // Duplicate #2
+    // Checking whether we can place shape at next position or not
     if (canPlaceShapeAtPosition(nextShape))
     {
         for (int i = 0; i < SHAPE_SIZE_IN_TILES; ++i)
@@ -249,15 +262,11 @@ bool Game::moveShape(Position shape[SHAPE_SIZE_IN_TILES],
         }
         return true;
     }
-    //////////////////////////
 
-    ///////////////////////////
-    // Duplicate #1
     for (int i = 0; i < SHAPE_SIZE_IN_TILES; ++i)
     {
         field[shape[i].y][shape[i].x] = shapeColor;
     }
-    //////////////////////
     return false;
 }
 
@@ -279,41 +288,6 @@ int Game::clearFullLines()
         (tilesCount < FIELD_WIDTH) ? --k: ++linesDestroyed;
     }
     return linesDestroyed;
-}
-
-
-void Game::rotateShape(Position shape[SHAPE_SIZE_IN_TILES], const Tetromino::Color shapeColor)
-{
-    Position pivotPoint = shape[1];
-    Position nextShape[SHAPE_SIZE_IN_TILES];
-
-    for (int i = 0; i < SHAPE_SIZE_IN_TILES; ++i)
-    {
-        field[shape[i].y][shape[i].x] = Tetromino::EMPTY;
-        nextShape[i].x = pivotPoint.x - (shape[i].y - pivotPoint.y);
-        nextShape[i].y = pivotPoint.y + (shape[i].x - pivotPoint.x);
-    }
-    ///////////////////////
-    // Duplicate #2
-    if (canPlaceShapeAtPosition(nextShape))
-    {
-        for (int i = 0; i < SHAPE_SIZE_IN_TILES; ++i)
-        {
-            field[nextShape[i].y][nextShape[i].x] = shapeColor;
-            shape[i] = nextShape[i];
-        }
-    }
-    ///////////////////////
-    else
-    {
-        ///////////////////////
-        // Duplicate #1
-        for (int i = 0; i < SHAPE_SIZE_IN_TILES; ++i)
-        {
-            field[shape[i].y][shape[i].x] = shapeColor;
-        }
-        /////////////////////////
-    }
 }
 
 

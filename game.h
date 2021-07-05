@@ -12,7 +12,11 @@ public:
     void                                        run();
 
 private:
-
+    enum ShapeMovementType
+    {
+        ROTATE,
+        SHIFT_HORIZONTALLY
+    };
     const int                                   FPS_LIMIT;
     Tetromino                                   tetromino;
     sf::RectangleShape                          fieldFrame;
@@ -28,8 +32,8 @@ private:
     void                                        initText();
     bool                                        placeShapeToField(Position shape[SHAPE_SIZE_IN_TILES], const Tetromino::Color shapeColor);
     bool                                        canPlaceShapeAtPosition(const Position shape[SHAPE_SIZE_IN_TILES]) const;
-    bool                                        moveShape(Position shape[SHAPE_SIZE_IN_TILES], const Tetromino::Color shapeColor, const int offsetX, const int offsetY);
-    void                                        rotateShape(Position shape[SHAPE_SIZE_IN_TILES], const Tetromino::Color shapeColor);
+    bool                                        moveShape(const ShapeMovementType moveType, Position shape[SHAPE_SIZE_IN_TILES], 
+                                                          const Tetromino::Color shapeColor, const int offsetX = 0, const int offsetY = 0);
     int                                         clearFullLines();
     void                                        drawField(sf::RenderWindow& window);
     void                                        drawNextShape(sf::RenderWindow& window, const Tetromino::Color shapeColor, const Position shape[SHAPE_SIZE_IN_TILES]);
